@@ -11,7 +11,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.view.View;
+import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,6 +21,8 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,20 +46,27 @@ public class MainActivity extends AppCompatActivity {
         add_link_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Database db = new Database(MainActivity.this);
-                db.addLink(addLink_txt.getText().toString().trim());
+                if(IsValidUrl(addLink_txt.getText().toString().trim())){
+                    Database db = new Database(MainActivity.this);
+                    db.addLink(addLink_txt.getText().toString().trim());
 
-                Glide.with(getApplicationContext())
-                        .load(addLink_txt.getText().toString().trim());
-                Toast.makeText(MainActivity.this, "Add Successfully!!!", Toast.LENGTH_SHORT).show();
+
+                    Glide.with(getApplicationContext())
+                            .load(addLink_txt.getText().toString().trim())
+                            .placeholder(R.drawable.ic_baseline_image_24).into(imageView);
+                    Toast.makeText(MainActivity.this, "Add Successfully!!!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "URL not Valid", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
         Database db = new Database(MainActivity.this);
 
-        db.addLink("https://images.vexels.com/media/users/3/263340/isolated/preview/92d75abef1c7523630339a2793eba5eb-pizza-color-stroke-slice.png");
-        db.addLink("https://img.freepik.com/premium-psd/fresh-vegetable-pepperoni-mushroom-pizza-transparent-background_670625-101.jpg?w=2000");
-        db.addLink("https://toppng.com/uploads/preview/pizza-11527809195frqp1qz4zd.png");
+//        db.addLink("https://images.vexels.com/media/users/3/263340/isolated/preview/92d75abef1c7523630339a2793eba5eb-pizza-color-stroke-slice.png");
+//        db.addLink("https://img.freepik.com/premium-psd/fresh-vegetable-pepperoni-mushroom-pizza-transparent-background_670625-101.jpg?w=2000");
+//        db.addLink("https://toppng.com/uploads/preview/pizza-11527809195frqp1qz4zd.png");
 
         Glide.with(getApplicationContext())
                 .load(loadLastImg())
@@ -99,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(index == last){
             cursor.moveToFirst();
+            index = cursor.getPosition();
 
         } else {
             index++;
@@ -116,13 +128,22 @@ public class MainActivity extends AppCompatActivity {
 
         if(index == 0){
             cursor.moveToLast();
-
+            index = cursor.getPosition();
         } else {
             index--;
             cursor.moveToPosition(index);
         }
         url = cursor.getString(1);
         return url;
+    }
+
+    public static boolean IsValidUrl(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            return URLUtil.isValidUrl(urlString) && Patterns.WEB_URL.matcher(urlString).matches();
+        } catch (MalformedURLException ignored) {
+        }
+        return false;
     }
 
 }
